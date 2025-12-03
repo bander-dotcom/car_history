@@ -4,7 +4,7 @@ from .models import Users, Cars, Accidents, ImageAccident, ImageCar, Reports, Ev
 
 @admin.register(Users)
 class UserAdmin(admin.ModelAdmin):
-    list_display = ('user_id', 'username', 'email') # بعد (صحيح)
+    llist_display = ('user_id', 'username', 'email') # بعد (صحيح)
     search_fields = ('username', 'email')
 
 @admin.register(Cars)

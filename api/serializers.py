@@ -1,39 +1,27 @@
 from rest_framework import serializers
-from .models import Users, Cars, Accidents, Reports, Evaluation, WorkshopsData, ImageAccident, ImageCar
-from django.contrib.auth import get_user_model
-from django.contrib.auth.hashers import make_password
+from .models import (
+    Users, Cars, Accidents, Reports, Evaluation,
+    WorkshopsData, ImageAccident, ImageCar
+)
 
-User = get_user_model()
-
-class RegisterSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ['id', 'username', 'email', 'password']
-        extra_kwargs = {
-            'password': {'write_only': True}
-        }
-
-    def create(self, validated_data):
-        validated_data['password'] = make_password(validated_data['password'])
-        return User.objects.create(**validated_data)
-    
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = Users
-        fields = '__all__'  # أو حدد الحقول التي تريد عرضها فقط
-        read_only_fields = fields  # جميع الحقول قراءة فقط
+        fields = ['user_id', 'username', 'email']
+        read_only_fields = ['user_id']
 
 class ImageCarSerializer(serializers.ModelSerializer):
     class Meta:
         model = ImageCar
-        fields = '__all__'
-        read_only_fields = fields
+        fields = ['img_car_id', 'car', 'img_car', 'uploaded_at']
+        read_only_fields = ['img_car_id', 'uploaded_at']
 
 class ImageAccidentSerializer(serializers.ModelSerializer):
     class Meta:
         model = ImageAccident
-        fields = '__all__'
-        read_only_fields = fields
+        fields = ['img_acc_id', 'accident', 'img_accident', 'uploaded_at']
+        read_only_fields = ['img_acc_id', 'uploaded_at']
+
 
 class CarSerializer(serializers.ModelSerializer):
     images = ImageCarSerializer(many=True, read_only=True, source='imagecar_set')
@@ -47,31 +35,46 @@ class CarSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['car_id', 'created_at']
 
+
 class AccidentSerializer(serializers.ModelSerializer):
     images = ImageAccidentSerializer(many=True, read_only=True, source='imageaccident_set')
-    
+
     class Meta:
         model = Accidents
-        fields = '__all__'
-        read_only_fields = fields
+        fields = [
+            'accident_id', 'car', 'report', 'type_accident', 'damaged_parts',
+            'accident_date', 'created_at', 'images'
+        ]
+        read_only_fields = ['accident_id', 'created_at']
 
 class ReportSerializer(serializers.ModelSerializer):
     class Meta:
         model = Reports
-        fields = '__all__'
-        read_only_fields = fields
+        fields = ['report_id', 'import_type', 'import_file', 'rating', 'created_at']
+        read_only_fields = ['report_id', 'created_at']
 
 class WorkshopSerializer(serializers.ModelSerializer):
     class Meta:
         model = WorkshopsData
-        fields = '__all__'
-        read_only_fields = fields
+        fields = ['workshop_id', 'car', 'mech_insp_desc', 'comp_scan_desc', 'created_at']
+        read_only_fields = ['workshop_id', 'created_at']
 
 class EvaluationSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
     car = CarSerializer(read_only=True)
-    
+
+    # الحقول التي نرسلها عند الإدخال
+    user_id = serializers.PrimaryKeyRelatedField(
+        queryset=Users.objects.all(), source="user", write_only=True
+    )
+    car_id = serializers.PrimaryKeyRelatedField(
+        queryset=Cars.objects.all(), source="car", write_only=True
+    )
+
     class Meta:
         model = Evaluation
-        fields = '__all__'
-        read_only_fields = fields
+        fields = [
+            'evaluation_id', 'user', 'car', 'rate',
+            'user_id', 'car_id'
+        ]
+        read_only_fields = ['evaluation_id']

@@ -1,85 +1,77 @@
-from rest_framework import viewsets
-from .models import Users, Cars, Accidents, Reports, Evaluation, WorkshopsData, ImageAccident, ImageCar
-from .serializers import (
-    UserSerializer, CarSerializer, AccidentSerializer, 
-    ReportSerializer, EvaluationSerializer, WorkshopSerializer,
-    ImageAccidentSerializer, ImageCarSerializer
-)
+from rest_framework import viewsets, permissions, status
+from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
-from rest_framework.authtoken.models import Token
-from rest_framework import status
-from django.contrib.auth import authenticate
-from .serializers import RegisterSerializer
-from django.contrib.auth import get_user_model
-
-User = get_user_model()
-
-@api_view(["POST"])
-def register_user(request):
-    serializer = RegisterSerializer(data=request.data)
-
-    if serializer.is_valid():
-        user = serializer.save()
-        token, created = Token.objects.get_or_create(user=user)
-
-        return Response({
-            "message": "Account created successfully",
-            "user_id": user.id,
-            "username": user.username,
-            "token": token.key
-        }, status=status.HTTP_201_CREATED)
-
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-@api_view(["POST"])
-def login_user(request):
-    username = request.data.get("username")
-    password = request.data.get("password")
-
-    user = authenticate(username=username, password=password)
-
-    if user is None:
-        return Response({"error": "Invalid username or password"}, status=400)
-
-    token, created = Token.objects.get_or_create(user=user)
-
-    return Response({
-        "message": "Login successful",
-        "user_id": user.id,
-        "username": user.username,
-        "token": token.key
-    })
-
+from .models import Users, Cars, Accidents, ImageAccident, ImageCar, Reports, Evaluation, WorkshopsData
+from .serializers import (UserSerializer, CarSerializer, AccidentSerializer,
+                          ImageAccidentSerializer, ImageCarSerializer, ReportSerializer,
+                          EvaluationSerializer, WorkshopSerializer)
+from .permissions import IsAdminOrReadOnly, IsOwnerOrReadOnly
+from rest_framework.parsers import MultiPartParser, FormParser
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Users.objects.all()
     serializer_class = UserSerializer
+    permission_classes = [permissions.IsAdminUser]  # المستخدم العادي لا يصلح له تعديل المستخدمين
 
-class CarViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Cars.objects.all()
-    serializer_class = CarSerializer
 
-class AccidentViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Accidents.objects.all()
-    serializer_class = AccidentSerializer
-
-class ReportViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Reports.objects.all()
-    serializer_class = ReportSerializer
-
-class WorkshopViewSet(viewsets.ReadOnlyModelViewSet):
+class WorkshopViewSet(viewsets.ModelViewSet):
     queryset = WorkshopsData.objects.all()
     serializer_class = WorkshopSerializer
+    permission_classes = [IsAdminOrReadOnly]
 
-class EvaluationViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Evaluation.objects.all()
-    serializer_class = EvaluationSerializer
 
-class ImageCarViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = ImageCar.objects.all()
+class CarViewSet(viewsets.ModelViewSet):
+    queryset = Cars.objects.select_related('owner').all()
+    serializer_class = CarSerializer
+    permission_classes = [IsOwnerOrReadOnly]
+    
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
+
+class AccidentViewSet(viewsets.ModelViewSet):
+    queryset = Accidents.objects.select_related('car').prefetch_related('images').all()
+    serializer_class = AccidentSerializer
+    permission_classes = [IsOwnerOrReadOnly]
+
+    def perform_create(self, serializer):
+        # car_id يأتي من serializer.car_id
+        serializer.save()
+
+
+class ImageCarViewSet(viewsets.ModelViewSet):
+    queryset = ImageCar.objects.select_related('car').all()
     serializer_class = ImageCarSerializer
+    parser_classes = [MultiPartParser, FormParser]
+    permission_classes = [IsOwnerOrReadOnly]
 
-class ImageAccidentViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = ImageAccident.objects.all()
+    def perform_create(self, serializer):
+        serializer.save()
+
+
+class ImageAccidentViewSet(viewsets.ModelViewSet):
+    queryset = ImageAccident.objects.select_related('accident').all()
     serializer_class = ImageAccidentSerializer
+    parser_classes = [MultiPartParser, FormParser]
+    permission_classes = [IsOwnerOrReadOnly]
+
+    def perform_create(self, serializer):
+        serializer.save()
+
+
+class ReportViewSet(viewsets.ModelViewSet):
+    queryset = Reports.objects.select_related('accident', 'author').all()
+    serializer_class = ReportSerializer
+    permission_classes = [IsOwnerOrReadOnly]
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
+
+class EvaluationViewSet(viewsets.ModelViewSet):
+    queryset = Evaluation.objects.select_related('workshop', 'author').all()
+    serializer_class = EvaluationSerializer
+    permission_classes = [IsOwnerOrReadOnly]
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
