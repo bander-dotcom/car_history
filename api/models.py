@@ -6,34 +6,32 @@
 #   * Remove `managed = False` lines if you wish to allow Django to create, modify, and delete the table
 # Feel free to rename the models, but don't rename db_table values or field names.
 from django.db import models
-from django.contrib.auth.models import BaseUserManager
 
 class Accidents(models.Model):
     accident_id = models.IntegerField(primary_key=True)
     car = models.ForeignKey('Cars', models.DO_NOTHING, blank=True, null=True)
     report = models.ForeignKey('Reports', models.DO_NOTHING, blank=True, null=True)
-    type_accident = models.TextField(blank=True, null=True)  # This field type is a guess.
-    damaged_parts = models.TextField()  # This field type is a guess.
+    type_accident = models.TextField(blank=True, null=True) 
+    damaged_parts = models.TextField()
     accident_date = models.DateTimeField(blank=True, null=True)
     created_at = models.DateTimeField(blank=True, null=True)
 
     class Meta:
-        #managed = False
         db_table = 'Accidents'
 
 
 class Cars(models.Model):
     car_id = models.IntegerField(primary_key=True)
     report = models.ForeignKey('Reports', models.DO_NOTHING, blank=True, null=True)
-    vin = models.TextField(db_column='VIN')  # Field name made lowercase. This field type is a guess.
-    plate_number=models.IntegerField(blank=True, null=True)  # This field type is a guess.
-    name_car = models.TextField()  # This field type is a guess.
-    make = models.TextField()  # This field type is a guess.
-    model = models.TextField()  # This field type is a guess.
+    vin = models.TextField(db_column='VIN') 
+    plate_number=models.IntegerField(blank=True, null=True) 
+    name_car = models.TextField()
+    make = models.TextField()  
+    model = models.TextField()  
     year = models.IntegerField()
-    color = models.TextField()  # This field type is a guess.
-    engine_size = models.TextField()  # This field type is a guess.
-    fuel_type = models.TextField()  # This field type is a guess.
+    color = models.TextField()  
+    engine_size = models.TextField()  
+    fuel_type = models.TextField()  
     engine_capecity = models.IntegerField()
     gear_type = models.IntegerField()
     receipt_number = models.IntegerField(blank=True, null=True)
@@ -42,42 +40,38 @@ class Cars(models.Model):
     mileage = models.IntegerField()
 
     class Meta:
-        #managed = False
         db_table = 'Cars'
 
 class Reports(models.Model):
     report_id = models.IntegerField(primary_key=True)
-    import_type = models.TextField()  # This field type is a guess.
+    import_type = models.TextField() 
     import_file = models.TextField()
-    rating = models.TextField()  # This field type is a guess.
+    rating = models.TextField() 
     created_at = models.DateTimeField(blank=True, null=True)
 
     class Meta:
-        #managed = False
         db_table = 'Reports'
 
 
 class Users(models.Model):
     user_id = models.IntegerField(primary_key=True)
-    username = models.TextField()  # This field type is a guess.
-    password_hash = models.TextField()  # This field type is a guess.
-    email = models.TextField()  # This field type is a guess.
+    username = models.TextField()
+    password_hash = models.TextField()
+    email = models.TextField()  
 
 
     class Meta:
-        #managed = False
         db_table = 'Users'
 
 
 class WorkshopsData(models.Model):
     workshop_id = models.IntegerField(primary_key=True)
     car = models.ForeignKey(Cars, models.DO_NOTHING, blank=True, null=True)
-    mech_insp_desc = models.TextField(blank=True, null=True)  # This field type is a guess.
-    comp_scan_desc = models.TextField(blank=True, null=True)  # This field type is a guess.
+    mech_insp_desc = models.TextField(blank=True, null=True) 
+    comp_scan_desc = models.TextField(blank=True, null=True) 
     created_at = models.DateTimeField(blank=True, null=True)
 
     class Meta:
-        #managed = False
         db_table = 'Workshops_data'
 
 
@@ -88,7 +82,6 @@ class Evaluation(models.Model):
     rate = models.IntegerField(blank=True, null=True)
 
     class Meta:
-        #managed = False
         db_table = 'evaluation'
 
 
@@ -99,7 +92,6 @@ class ImageAccident(models.Model):
     uploaded_at = models.DateField(blank=True, null=True)
 
     class Meta:
-        #managed = False
         db_table = 'image_accident'
 
 
@@ -110,5 +102,4 @@ class ImageCar(models.Model):
     uploaded_at = models.DateField(blank=True, null=True)
 
     class Meta:
-        #managed = False
         db_table = 'image_car'
