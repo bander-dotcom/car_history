@@ -1,18 +1,24 @@
+from django.urls import path
+from .views import register_user, login_user
 from rest_framework import routers
-from django.urls import path, include
-from .views import (UserViewSet, CarViewSet, AccidentViewSet, ImageAccidentViewSet,
-                    ImageCarViewSet, ReportViewSet, EvaluationViewSet, WorkshopViewSet)
+from .views import (
+    UserViewSet, CarViewSet, AccidentViewSet,
+    ReportViewSet, EvaluationViewSet, WorkshopViewSet,
+    ImageAccidentViewSet, ImageCarViewSet
+)
 
 router = routers.DefaultRouter()
-router.register(r'users', UserViewSet, basename='user')
-router.register(r'cars', CarViewSet, basename='car')
-router.register(r'accidents', AccidentViewSet, basename='accident')
-router.register(r'images/car', ImageCarViewSet, basename='imagecar')
-router.register(r'images/accident', ImageAccidentViewSet, basename='imageaccident')
-router.register(r'reports', ReportViewSet, basename='report')
-router.register(r'evaluations', EvaluationViewSet, basename='evaluation')
-router.register(r'workshops', WorkshopViewSet, basename='workshop')
+router.register(r'users', UserViewSet)
+router.register(r'cars', CarViewSet)
+router.register(r'accidents', AccidentViewSet)
+router.register(r'reports', ReportViewSet)
+router.register(r'evaluations', EvaluationViewSet)
+router.register(r'workshops', WorkshopViewSet)
+router.register(r'image_accidents', ImageAccidentViewSet)
+router.register(r'image_cars', ImageCarViewSet)
 
+urlpatterns = router.urls
 urlpatterns = [
-    path('', include(router.urls)),
+    path('register/', register_user, name="register"),
+    path('login/', login_user, name="login"),
 ]
